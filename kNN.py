@@ -2,7 +2,8 @@ import ScraperDAO
 import random
 import math
 
-k = 33
+#Set k to the square root of the amount of samples, a good metric
+k = int(math.sqrt(len(ScraperDAO.fighterDifferencesAndResultsList)))
 
 trainingInstancesList=[]
 testInstancesList=[]
@@ -25,6 +26,8 @@ def getEuclideanDistance(a, b):
             distance += pow((a[stat] - b[stat]), 2)
     return math.sqrt(distance)
 
+#Guesses whether the fighter will win or lose in a fight
+#The input is a set of differences between the fighters stats, eg -10 if the opponent is 10 cm taller
 def makePrediction(newFight):
     winDistancesList=[]
     loseDistancesList=[]
@@ -57,7 +60,7 @@ def makePrediction(newFight):
     else:
         return("Loss")
 
-#Runs the model and returns the accuracy of the model
+#Runs the model and returns its accuracy
 def getAccuracyOfModel():
     splitDataset(0.66)
     correctGuesses = 0
@@ -65,7 +68,7 @@ def getAccuracyOfModel():
         if fight["Result"] == makePrediction(fight):
             correctGuesses+=1
 
-    return(correctGuesses/len(testInstancesList))
+    return((correctGuesses/len(testInstancesList))*100)
 
 print(getAccuracyOfModel())
 
