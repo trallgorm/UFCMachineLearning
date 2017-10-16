@@ -19,6 +19,23 @@ def findFightersAmountOfWins(fighterNode):
     else:
         return(STAT_NOT_FOUND_CODE)
 
+# Returns the amount of losses a fighter has on his record
+def findFightersAmountOfLosses(fighterNode):
+    record = textof(fighterNode.find('fighterRecord')).replace(",", "-").replace("(", "-").split("-")
+    if len(record) > 2:
+        return (int(record[1]))
+    else:
+        return (STAT_NOT_FOUND_CODE)
+
+# Returns the amount of losses a fighter has on his record
+def findFightersAmountOfDraws(fighterNode):
+    record = textof(fighterNode.find('fighterRecord')).replace(",", "-").replace("(", "-").split("-")
+    if len(record) > 2:
+        return (int(record[2]))
+    else:
+        return (STAT_NOT_FOUND_CODE)
+
+
 #Returns the reach of a fighter in inches
 def findFightersReach(fighterNode):
     reach = textof(fighterNode.find('fighterReach'))
@@ -26,6 +43,13 @@ def findFightersReach(fighterNode):
         return(int(reach.split('"', 1)[0]))
     else:
         return(STAT_NOT_FOUND_CODE)
+
+def findFightersLegReach(fighterNode):
+    reach = textof(fighterNode.find('fighterLegReach'))
+    if len(reach) > 0:
+        return (int(reach.split('"', 1)[0]))
+    else:
+        return (STAT_NOT_FOUND_CODE)
 
 #Returns the height of the fighter in centimentres
 #Height must be formatted like this: 5' 8" ( 172 cm )
@@ -35,6 +59,20 @@ def findFightersHeight(fighterNode):
         return(int(height.split(' ')[3]))
     else:
         return(STAT_NOT_FOUND_CODE)
+
+def findFightersWeight(fighterNode):
+    weight = textof(fighterNode.find('fighterWeight'))
+    if(len(weight)>0):
+        return(int(weight.split(' ')[0]))
+    else:
+        return(STAT_NOT_FOUND_CODE)
+
+def findFightersAge(fighterNode):
+    age = textof(fighterNode.find('fighterAge'))
+    if (len(age) > 0):
+        return (int(age))
+    else:
+        return (STAT_NOT_FOUND_CODE)
 
 #Gets the difference between two stats, but assumes the stats are equal if one of the fighters is missing the stat
 def getDifference(a,b):
@@ -55,6 +93,11 @@ for fighterNode in tree.findall('fighterName'):
     fighterInfoDict["Wins"] = findFightersAmountOfWins(fighterNode)
     fighterInfoDict["Reach"] = findFightersReach(fighterNode)
     fighterInfoDict["Height"] = findFightersHeight(fighterNode)
+    fighterInfoDict["Losses"] = findFightersAmountOfLosses(fighterNode)
+    fighterInfoDict["Draws"] = findFightersAmountOfDraws(fighterNode)
+    fighterInfoDict["Age"] = findFightersAge(fighterNode)
+    fighterInfoDict["Weight"] = findFightersWeight(fighterNode)
+    fighterInfoDict["LegReach"] = findFightersLegReach(fighterNode)
 
     fightersNameToInfoDict[textof(fighterNode).strip()] = fighterInfoDict
 
@@ -76,12 +119,12 @@ for fighterNode in tree.findall('fighterName'):
             differencesAndResultDict["WinsDifference"] = getDifference(fightersNameToInfoDict[fighterName]["Wins"],fightersNameToInfoDict[opponentName]["Wins"])
             differencesAndResultDict["ReachDifference"] = getDifference(fightersNameToInfoDict[fighterName]["Reach"],fightersNameToInfoDict[opponentName]["Reach"])
             differencesAndResultDict["HeightDifference"] = getDifference(fightersNameToInfoDict[fighterName]["Height"],fightersNameToInfoDict[opponentName]["Height"])
+            differencesAndResultDict["LossesDifference"] = getDifference(fightersNameToInfoDict[fighterName]["Losses"],fightersNameToInfoDict[opponentName]["Losses"])
+            differencesAndResultDict["DrawsDifference"] = getDifference(fightersNameToInfoDict[fighterName]["Draws"],fightersNameToInfoDict[opponentName]["Draws"])
+            differencesAndResultDict["AgeDifference"] = getDifference(fightersNameToInfoDict[fighterName]["Age"],fightersNameToInfoDict[opponentName]["Age"])
+            differencesAndResultDict["LegReachDifference"] = getDifference(fightersNameToInfoDict[fighterName]["Weight"],fightersNameToInfoDict[opponentName]["Weight"])
+            differencesAndResultDict["WeightDifference"] = getDifference(fightersNameToInfoDict[fighterName]["LegReach"],fightersNameToInfoDict[opponentName]["LegReach"])
 
             fighterDifferencesAndResultsList.append(differencesAndResultDict)
 
-for dict in fighterDifferencesAndResultsList:
-    print(dict["Result"])
-    print(dict["WinsDifference"])
-    print(dict["ReachDifference"])
-    print(dict["HeightDifference"])
 

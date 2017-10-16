@@ -70,7 +70,7 @@ def getAccuracyOfModel():
 
     return((correctGuesses/len(testInstancesList))*100)
 
-print(getAccuracyOfModel())
+print("Model accuracy is: " + str(getAccuracyOfModel()) + "%")
 
 
 
