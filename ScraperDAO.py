@@ -74,6 +74,41 @@ def findFightersAge(fighterNode):
     else:
         return (STAT_NOT_FOUND_CODE)
 
+def findFightersTotalStrikes(fighterNode):
+    totalStrikes = textof(fighterNode.find('fighterTotalStrikes'))
+    if (len(totalStrikes) > 0):
+        return (int(totalStrikes))
+    else:
+        return (STAT_NOT_FOUND_CODE)
+
+def findFightersSuccessfulStrikesPercentage(fighterNode):
+    strikesPercent = textof(fighterNode.find('fighterSuccessfulStrikesPercentage'))
+    if (strikesPercent.__contains__('%')):
+        return (int(strikesPercent.split('%')[0]))
+    else:
+        return (STAT_NOT_FOUND_CODE)
+
+def findFightersTotalTakedowns(fighterNode):
+    totalTakedowns = textof(fighterNode.find('fighterTakedowns'))
+    if (len(totalTakedowns) > 0):
+        return (int(totalTakedowns))
+    else:
+        return (STAT_NOT_FOUND_CODE)
+
+def findFightersSuccessfulTakedownsPercentage(fighterNode):
+    takedownsPercent = textof(fighterNode.find('fighterSuccessfulTakedownsPercentage'))
+    if (takedownsPercent.__contains__('%')):
+        return (int(takedownsPercent.split('%')[0]))
+    else:
+        return (STAT_NOT_FOUND_CODE)
+
+def findFightersSuccessfulStrikes(fighterNode):
+    sucStrikes = textof(fighterNode.find('fighterSuccessfulStrikes'))
+    if (len(sucStrikes) > 0):
+        return (int(sucStrikes))
+    else:
+        return (STAT_NOT_FOUND_CODE)
+
 #Gets the difference between two stats, but assumes the stats are equal if one of the fighters is missing the stat
 def getDifference(a,b):
     if(a == STAT_NOT_FOUND_CODE or b == STAT_NOT_FOUND_CODE):
@@ -98,6 +133,12 @@ for fighterNode in tree.findall('fighterName'):
     fighterInfoDict["Age"] = findFightersAge(fighterNode)
     fighterInfoDict["Weight"] = findFightersWeight(fighterNode)
     fighterInfoDict["LegReach"] = findFightersLegReach(fighterNode)
+    fighterInfoDict["TotalStrikes"] = findFightersTotalStrikes(fighterNode)
+    fighterInfoDict["SuccessfulStrikesPercentage"] = findFightersSuccessfulStrikesPercentage(fighterNode)
+    fighterInfoDict["TotalTakedowns"] = findFightersTotalTakedowns(fighterNode)
+    fighterInfoDict["SuccessfulTakedownsPercentage"] = findFightersSuccessfulTakedownsPercentage(fighterNode)
+    fighterInfoDict["SuccessfulStrikes"] = findFightersSuccessfulStrikes(fighterNode)
+
 
     fightersNameToInfoDict[textof(fighterNode).strip()] = fighterInfoDict
 
@@ -124,6 +165,11 @@ for fighterNode in tree.findall('fighterName'):
             differencesAndResultDict["AgeDifference"] = getDifference(fightersNameToInfoDict[fighterName]["Age"],fightersNameToInfoDict[opponentName]["Age"])
             differencesAndResultDict["LegReachDifference"] = getDifference(fightersNameToInfoDict[fighterName]["Weight"],fightersNameToInfoDict[opponentName]["Weight"])
             differencesAndResultDict["WeightDifference"] = getDifference(fightersNameToInfoDict[fighterName]["LegReach"],fightersNameToInfoDict[opponentName]["LegReach"])
+            differencesAndResultDict["TotalStrikesDifference"] = getDifference(fightersNameToInfoDict[fighterName]["TotalStrikes"], fightersNameToInfoDict[opponentName]["TotalStrikes"])
+            differencesAndResultDict["SuccessfulStrikesPercentageDifference"] = getDifference(fightersNameToInfoDict[fighterName]["SuccessfulStrikesPercentage"], fightersNameToInfoDict[opponentName]["SuccessfulStrikesPercentage"])
+            differencesAndResultDict["TotalTakedownsDifference"] = getDifference(fightersNameToInfoDict[fighterName]["TotalTakedowns"], fightersNameToInfoDict[opponentName]["TotalTakedowns"])
+            differencesAndResultDict["SuccessfulTakedownsPercentageDifference"] = getDifference(fightersNameToInfoDict[fighterName]["SuccessfulTakedownsPercentage"], fightersNameToInfoDict[opponentName]["SuccessfulTakedownsPercentage"])
+            differencesAndResultDict["SuccessfulStrikesDifference"] = getDifference(fightersNameToInfoDict[fighterName]["SuccessfulStrikes"], fightersNameToInfoDict[opponentName]["SuccessfulStrikes"])
 
             fighterDifferencesAndResultsList.append(differencesAndResultDict)
 
