@@ -109,6 +109,68 @@ def findFightersSuccessfulStrikes(fighterNode):
     else:
         return (STAT_NOT_FOUND_CODE)
 
+def findFighterSuccessfulStandingStrikes(fighterNode):
+    sucStrikes = textof(fighterNode.find('fighterSuccessfulStrikes').find('fighterSuccessfulStandingStrikes'))
+    if (len(sucStrikes) > 0):
+        return (int(sucStrikes))
+    else:
+        return (STAT_NOT_FOUND_CODE)
+
+def findFighterSuccessfulGroundStrikes(fighterNode):
+    sucStrikes = textof(fighterNode.find('fighterSuccessfulStrikes').find('fighterSuccessfulGroundStrikes'))
+    if (len(sucStrikes) > 0):
+        return (int(sucStrikes))
+    else:
+        return (STAT_NOT_FOUND_CODE)
+
+def findFighterSuccessfulClinchStrikes(fighterNode):
+    sucStrikes = textof(fighterNode.find('fighterSuccessfulStrikes').find('fighterSuccessfulClinchStrikes'))
+    if (len(sucStrikes) > 0):
+        return (int(sucStrikes))
+    else:
+        return (STAT_NOT_FOUND_CODE)
+
+def findFightersSubmissions(fighterNode):
+    totalSubmissions = textof(fighterNode.find('fighterSubmissions'))
+    if (len(totalSubmissions) > 0):
+        return (int(totalSubmissions))
+    else:
+        return (STAT_NOT_FOUND_CODE)
+
+def findFightersPasses(fighterNode):
+    totalPasses = textof(fighterNode.find('fighterPasses'))
+    if (len(totalPasses) > 0):
+        return (int(totalPasses))
+    else:
+        return (STAT_NOT_FOUND_CODE)
+
+def findFightersSweeps(fighterNode):
+    totalSweeps = textof(fighterNode.find('fighterSweeps'))
+    if (len(totalSweeps) > 0):
+        return (int(totalSweeps))
+    else:
+        return (STAT_NOT_FOUND_CODE)
+
+def findFightersStrikesAvoidedPercentage(fighterNode):
+    percent = textof(fighterNode.find('fighterStrikesAvoidedPercentage'))
+    if (percent.__contains__('%')):
+        return (int(percent.split('%')[0]))
+    else:
+        return (STAT_NOT_FOUND_CODE)
+
+def findFightersTakedownsAvoidedPercentage(fighterNode):
+    percent = textof(fighterNode.find('fighterTakedownsAvoidedPercentage'))
+    if (percent.__contains__('%')):
+        return (int(percent.split('%')[0]))
+    else:
+        return (STAT_NOT_FOUND_CODE)
+
+def findAmountOfUFCOpponents(fighterNode):
+    i=0
+    for opponent in fighterNode.find('fighterOpponents').findall('opponentName'):
+        i+=1
+    return i
+
 #Gets the difference between two stats, but assumes the stats are equal if one of the fighters is missing the stat
 def getDifference(a,b):
     if(a == STAT_NOT_FOUND_CODE or b == STAT_NOT_FOUND_CODE):
@@ -138,6 +200,15 @@ for fighterNode in tree.findall('fighterName'):
     fighterInfoDict["TotalTakedowns"] = findFightersTotalTakedowns(fighterNode)
     fighterInfoDict["SuccessfulTakedownsPercentage"] = findFightersSuccessfulTakedownsPercentage(fighterNode)
     fighterInfoDict["SuccessfulStrikes"] = findFightersSuccessfulStrikes(fighterNode)
+    fighterInfoDict["SuccessfulStandingStrikes"] = findFighterSuccessfulStandingStrikes(fighterNode)
+    fighterInfoDict["SuccessfulGroundStrikes"] = findFighterSuccessfulGroundStrikes(fighterNode)
+    fighterInfoDict["SuccessfulClinchStrikes"] = findFighterSuccessfulClinchStrikes(fighterNode)
+    fighterInfoDict["Submissions"] = findFightersSubmissions(fighterNode)
+    fighterInfoDict["Passes"] = findFightersPasses(fighterNode)
+    fighterInfoDict["Sweeps"] = findFightersSweeps(fighterNode)
+    fighterInfoDict["StrikesAvoidedPercentage"] = findFightersStrikesAvoidedPercentage(fighterNode)
+    fighterInfoDict["TakedownsAvoidedPercentage"] = findFightersTakedownsAvoidedPercentage(fighterNode)
+    fighterInfoDict["UFCFights"] = findAmountOfUFCOpponents(fighterNode)
 
 
     fightersNameToInfoDict[textof(fighterNode).strip()] = fighterInfoDict
@@ -156,21 +227,10 @@ for fighterNode in tree.findall('fighterName'):
             #Create a dictionary to avoid the magic numbers prevalent in lists
             #This dictionary contains the (fighter stat - opponent stat) as well as the result of the fight
             differencesAndResultDict = {}
-            differencesAndResultDict["Result"] = textof(opponentNode.find('fightResult'))
-            differencesAndResultDict["WinsDifference"] = getDifference(fightersNameToInfoDict[fighterName]["Wins"],fightersNameToInfoDict[opponentName]["Wins"])
-            differencesAndResultDict["ReachDifference"] = getDifference(fightersNameToInfoDict[fighterName]["Reach"],fightersNameToInfoDict[opponentName]["Reach"])
-            differencesAndResultDict["HeightDifference"] = getDifference(fightersNameToInfoDict[fighterName]["Height"],fightersNameToInfoDict[opponentName]["Height"])
-            differencesAndResultDict["LossesDifference"] = getDifference(fightersNameToInfoDict[fighterName]["Losses"],fightersNameToInfoDict[opponentName]["Losses"])
-            differencesAndResultDict["DrawsDifference"] = getDifference(fightersNameToInfoDict[fighterName]["Draws"],fightersNameToInfoDict[opponentName]["Draws"])
-            differencesAndResultDict["AgeDifference"] = getDifference(fightersNameToInfoDict[fighterName]["Age"],fightersNameToInfoDict[opponentName]["Age"])
-            differencesAndResultDict["LegReachDifference"] = getDifference(fightersNameToInfoDict[fighterName]["Weight"],fightersNameToInfoDict[opponentName]["Weight"])
-            differencesAndResultDict["WeightDifference"] = getDifference(fightersNameToInfoDict[fighterName]["LegReach"],fightersNameToInfoDict[opponentName]["LegReach"])
-            differencesAndResultDict["TotalStrikesDifference"] = getDifference(fightersNameToInfoDict[fighterName]["TotalStrikes"], fightersNameToInfoDict[opponentName]["TotalStrikes"])
-            differencesAndResultDict["SuccessfulStrikesPercentageDifference"] = getDifference(fightersNameToInfoDict[fighterName]["SuccessfulStrikesPercentage"], fightersNameToInfoDict[opponentName]["SuccessfulStrikesPercentage"])
-            differencesAndResultDict["TotalTakedownsDifference"] = getDifference(fightersNameToInfoDict[fighterName]["TotalTakedowns"], fightersNameToInfoDict[opponentName]["TotalTakedowns"])
-            differencesAndResultDict["SuccessfulTakedownsPercentageDifference"] = getDifference(fightersNameToInfoDict[fighterName]["SuccessfulTakedownsPercentage"], fightersNameToInfoDict[opponentName]["SuccessfulTakedownsPercentage"])
-            differencesAndResultDict["SuccessfulStrikesDifference"] = getDifference(fightersNameToInfoDict[fighterName]["SuccessfulStrikes"], fightersNameToInfoDict[opponentName]["SuccessfulStrikes"])
+            for key in fightersNameToInfoDict[fighterName]:
+                differencesAndResultDict[key + "Difference"] = getDifference(fightersNameToInfoDict[fighterName][key],fightersNameToInfoDict[opponentName][key])
 
+            differencesAndResultDict["Result"] = textof(opponentNode.find('fightResult'))
             fighterDifferencesAndResultsList.append(differencesAndResultDict)
 
 
