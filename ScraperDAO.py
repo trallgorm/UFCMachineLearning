@@ -233,4 +233,12 @@ for fighterNode in tree.findall('fighterName'):
             differencesAndResultDict["Result"] = textof(opponentNode.find('fightResult'))
             fighterDifferencesAndResultsList.append(differencesAndResultDict)
 
+def getNamesOfStats():
+    keys=[]
+    for key in fighterDifferencesAndResultsList[0]:
+        if key != "Result":
+            keys.append(key)
+    return (keys)
+
+
 
