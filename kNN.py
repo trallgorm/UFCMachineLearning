@@ -6,8 +6,6 @@ import itertools
 #Set k to the square root of the amount of samples, a good metric
 k = int(math.sqrt(len(ScraperDAO.fighterDifferencesAndResultsList)))
 
-
-
 #Fills the training list and the test list with the amount in the training list specified by split percentage
 def splitDataset(splitPercentage):
     trainingInstancesList = []
@@ -71,18 +69,39 @@ def getAccuracyOfModel(statsToJudgeBy):
     for fight in datalists["TestList"]:
         if fight["Result"] == makePrediction(fight, statsToJudgeBy, datalists["TrainingList"]):
             correctGuesses+=1
+
     return((correctGuesses/len(datalists["TestList"]))*100)
 
+def writeResultsToFile(size, statsAndAccuracy):
+    file = open('level' + str(size) + '.txt', 'w+')
+    for item in sorted(statsAndAccuracy, key=lambda tup: tup[1], reverse=True):
+        file.write(str(item[0]) + " : " + str(item[1]) + '\n')
+    file.close()
+
+#Attempts to run the model for a number of stats to see which ones have the most predictive power
 def testAllStats():
     statsAndAccuracy =[]
 
-    for size in range(0, len(ScraperDAO.getNamesOfStats()) + 1):
+    #Runs for a combination of all the stats, will finish in only around 173 trillion years
+    for size in range(1, len(ScraperDAO.getNamesOfStats()) + 1):
+        batchSize = 0
         for statNamesSubset in itertools.combinations(ScraperDAO.getNamesOfStats(), size):
+            batchSize+=1
             totalaccuracy=0
-            for i in range(10):
+
+            #Runs the model 3 times to average out the accuracy
+            for i in range(3):
                 totalaccuracy += getAccuracyOfModel(statNamesSubset)
-            statsAndAccuracy.append((statNamesSubset,totalaccuracy/10))
-            print(str(statNamesSubset) + " : " + str(totalaccuracy/10))
+            statsAndAccuracy.append((statNamesSubset,totalaccuracy/3))
+            print(str(statNamesSubset) + " : " + str(totalaccuracy/3))
+
+            #Writes the results to a file if there are over 100 unwritten results just so theres a result to look at if the level doesn't finish
+            if(batchSize>100):
+                batchSize=0
+                writeResultsToFile(size,statsAndAccuracy)
+
+        print("One level done")
+        writeResultsToFile(size, statsAndAccuracy)
 
     print("Done")
     return(sorted(statsAndAccuracy, key=lambda tup: tup[1], reverse=True))
