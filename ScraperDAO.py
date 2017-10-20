@@ -171,12 +171,12 @@ def findAmountOfUFCOpponents(fighterNode):
         i+=1
     return i
 
-#Gets the difference between two stats, but assumes the stats are equal if one of the fighters is missing the stat
+#Gets the normalized difference between two stats, but assumes the stats are equal if one of the fighters is missing the stat
 def getDifference(a,b):
-    if(a == STAT_NOT_FOUND_CODE or b == STAT_NOT_FOUND_CODE):
+    if(a == STAT_NOT_FOUND_CODE or b == STAT_NOT_FOUND_CODE or a==b):
         return(0)
     else:
-        return(a-b)
+        return((a/(a+b))-(b/(a+b)))
 
 # Allows for xml parsing of the data
 tree = xml.etree.ElementTree.parse(XML_FILE_LOCATION).getroot()
