@@ -2,6 +2,8 @@ import ScraperDAO
 import random
 import math
 import itertools
+from multiprocessing import Pool
+from datetime import datetime
 
 #Set k to the square root of the amount of samples, a good metric
 k = int(math.sqrt(len(ScraperDAO.fighterDifferencesAndResultsList)))
@@ -31,6 +33,8 @@ def getEuclideanDistance(a, b , stats):
 #Guesses whether the fighter will win or lose in a fight
 #The input is a set of differences between the fighters stats, eg -10 if the opponent is 10 cm taller
 def makePrediction(newFight, statsToJudgeBy, trainingInstancesList):
+
+
     winDistancesList=[]
     loseDistancesList=[]
 
@@ -57,6 +61,7 @@ def makePrediction(newFight, statsToJudgeBy, trainingInstancesList):
         else:
             loseIndex+=1
 
+
     if(winIndex>loseIndex):
         return("Win")
     else:
@@ -64,12 +69,12 @@ def makePrediction(newFight, statsToJudgeBy, trainingInstancesList):
 
 #Runs the model and returns its accuracy
 def getAccuracyOfModel(statsToJudgeBy):
+
     datalists = splitDataset(0.66)
     correctGuesses = 0
     for fight in datalists["TestList"]:
         if fight["Result"] == makePrediction(fight, statsToJudgeBy, datalists["TrainingList"]):
             correctGuesses+=1
-
     return((correctGuesses/len(datalists["TestList"]))*100)
 
 def writeResultsToFile(size, statsAndAccuracy):
@@ -82,6 +87,8 @@ def writeResultsToFile(size, statsAndAccuracy):
 def testAllStats():
     statsAndAccuracy =[]
 
+    pool = Pool()
+
     #Runs for a combination of all the stats, will finish in only around 173 trillion years
     for size in range(1, len(ScraperDAO.getNamesOfStats()) + 1):
         batchSize = 0
@@ -89,9 +96,12 @@ def testAllStats():
             batchSize+=1
             totalaccuracy=0
 
-            #Runs the model 3 times to average out the accuracy
-            for i in range(3):
-                totalaccuracy += getAccuracyOfModel(statNamesSubset)
+            # Runs the model 3 times in parallel to average out the accuracy
+            result1 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
+            result2 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
+            result3 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
+
+            totalaccuracy=result1.get(timeout=10)+result2.get(timeout=10)+result3.get(timeout=10)
             statsAndAccuracy.append((statNamesSubset,totalaccuracy/3))
             print(str(statNamesSubset) + " : " + str(totalaccuracy/3))
 
@@ -106,7 +116,8 @@ def testAllStats():
     print("Done")
     return(sorted(statsAndAccuracy, key=lambda tup: tup[1], reverse=True))
 
-print(testAllStats())
+if __name__ ==  '__main__':
+    print(testAllStats())
 
 
 
