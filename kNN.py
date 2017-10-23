@@ -101,7 +101,7 @@ def testAllStats():
             result2 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
             result3 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
 
-            totalaccuracy=result1.get(timeout=10)+result2.get(timeout=10)+result3.get(timeout=10)
+            totalaccuracy=result1.get()+result2.get()+result3.get()
             statsAndAccuracy.append((statNamesSubset,totalaccuracy/3))
             print(str(statNamesSubset) + " : " + str(totalaccuracy/3))
 
