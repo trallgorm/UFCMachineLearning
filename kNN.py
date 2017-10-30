@@ -116,6 +116,14 @@ def testAllStats():
     print("Done")
     return(sorted(statsAndAccuracy, key=lambda tup: tup[1], reverse=True))
 
+#Predicts the outcome of a fight given two fighters
+def predictOutcome(fighterNameA,fighterNameB):
+    ScraperDAO.getDifferencesBetweenFighters(fighterNameA,fighterNameB)
+    if makePrediction(ScraperDAO.getDifferencesBetweenFighters(fighterNameA,fighterNameB),ScraperDAO.getNamesOfStats(),ScraperDAO.fighterDifferencesAndResultsList)=="Win":
+        return(fighterNameA + " wins")
+    else:
+        return(fighterNameB + " wins")
+
 if __name__ ==  '__main__':
     print(testAllStats())
 

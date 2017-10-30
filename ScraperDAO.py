@@ -240,5 +240,13 @@ def getNamesOfStats():
             keys.append(key)
     return (keys)
 
+def getDifferencesBetweenFighters(fighterNameA,fighterNameB):
+    differencesDict = {}
+    for key in fightersNameToInfoDict[fighterNameA]:
+        differencesDict[key + "Difference"] = getDifference(fightersNameToInfoDict[fighterNameA][key],fightersNameToInfoDict[fighterNameB][key])
+    return(differencesDict)
+
+
+
 
 
