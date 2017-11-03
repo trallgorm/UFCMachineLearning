@@ -4,6 +4,12 @@ import xml.etree.ElementTree
 XML_FILE_LOCATION="../UFCScraper/fighters.xml"
 STAT_NOT_FOUND_CODE = -1
 
+#This is a class to make storing the record of a fighter at the time of a specific fight easier
+class recordAtTimeOfFight:
+    def __init__(self, wins, losses):
+        self.wins = wins
+        self.losses = losses
+
 #Returns the contents of the given node
 def textof(node):
     if node is None or node.text==None:
@@ -171,6 +177,14 @@ def findAmountOfUFCOpponents(fighterNode):
         i+=1
     return i
 
+def findFightersFights(fighterNode):
+    fights = {}
+    for opponent in fighterNode.find('fighterOpponents').findall('opponentName'):
+        wins = int(textof(opponent.find('fighterWinsPriorToFight'))) if textof(opponent.find('fighterWinsPriorToFight'))!='' else 0
+        losses = int(textof(opponent.find('fighterLossesPriorToFight'))) if textof(opponent.find('fighterLossesPriorToFight')) != '' else 0
+        fights[(textof(opponent).strip(),textof(opponent.find('dateOfFight')))] = recordAtTimeOfFight(wins,losses)
+    return fights
+
 #Gets the normalized difference between two stats, but assumes the stats are equal if one of the fighters is missing the stat
 def getDifference(a,b):
     if(a == STAT_NOT_FOUND_CODE or b == STAT_NOT_FOUND_CODE or a==b):
@@ -209,9 +223,23 @@ for fighterNode in tree.findall('fighterName'):
     fighterInfoDict["StrikesAvoidedPercentage"] = findFightersStrikesAvoidedPercentage(fighterNode)
     fighterInfoDict["TakedownsAvoidedPercentage"] = findFightersTakedownsAvoidedPercentage(fighterNode)
     fighterInfoDict["UFCFights"] = findAmountOfUFCOpponents(fighterNode)
+    fighterInfoDict["Fights"] = findFightersFights(fighterNode)
 
 
     fightersNameToInfoDict[textof(fighterNode).strip()] = fighterInfoDict
+
+def getNamesOfStats():
+    keys=[]
+    for key in fighterDifferencesAndResultsList[0]:
+        if key != "Result":
+            keys.append(key)
+    return (keys)
+
+def getDifferencesBetweenFighters(fighterNameA,fighterNameB):
+    differencesDict = {}
+    for key in fightersNameToInfoDict[fighterNameA]:
+        differencesDict[key + "Difference"] = getDifference(fightersNameToInfoDict[fighterNameA][key],fightersNameToInfoDict[fighterNameB][key])
+    return(differencesDict)
 
 #Collect the stat differences and the result of the fight and  put each fight in a list
 fighterDifferencesAndResultsList = []
@@ -227,24 +255,29 @@ for fighterNode in tree.findall('fighterName'):
             #Create a dictionary to avoid the magic numbers prevalent in lists
             #This dictionary contains the (fighter stat - opponent stat) as well as the result of the fight
             differencesAndResultDict = {}
+
+            #Calculates differences that don't rely on time
             for key in fightersNameToInfoDict[fighterName]:
-                differencesAndResultDict[key + "Difference"] = getDifference(fightersNameToInfoDict[fighterName][key],fightersNameToInfoDict[opponentName][key])
+                if key not in ["Fights","Wins","Losses"]:
+                    differencesAndResultDict[key + "Difference"] = getDifference(fightersNameToInfoDict[fighterName][key],fightersNameToInfoDict[opponentName][key])
+
+            #Calculates differences that do rely on time
+
+            #Fight tuples are combinations of opponents name as well as the date they fought
+            fightTuple = (opponentName,textof(opponentNode.find('dateOfFight')))
+            opponentFightTuple =(fighterName,textof(opponentNode.find('dateOfFight')))
+
+            #Finds the differences between the wins and losses at the time of the fight
+            if fightTuple in fightersNameToInfoDict[fighterName]["Fights"] and opponentFightTuple in fightersNameToInfoDict[opponentName]["Fights"]:
+                differencesAndResultDict["WinsDifference"] = getDifference(fightersNameToInfoDict[fighterName]["Fights"][fightTuple].wins,fightersNameToInfoDict[opponentName]["Fights"][opponentFightTuple].wins)
+                differencesAndResultDict["LossesDifference"] = getDifference(fightersNameToInfoDict[fighterName]["Fights"][fightTuple].losses,fightersNameToInfoDict[opponentName]["Fights"][opponentFightTuple].losses)
+            else:
+                differencesAndResultDict["WinsDifference"] = 0
+                differencesAndResultDict["LossesDifference"] = 0
 
             differencesAndResultDict["Result"] = textof(opponentNode.find('fightResult'))
             fighterDifferencesAndResultsList.append(differencesAndResultDict)
 
-def getNamesOfStats():
-    keys=[]
-    for key in fighterDifferencesAndResultsList[0]:
-        if key != "Result":
-            keys.append(key)
-    return (keys)
-
-def getDifferencesBetweenFighters(fighterNameA,fighterNameB):
-    differencesDict = {}
-    for key in fightersNameToInfoDict[fighterNameA]:
-        differencesDict[key + "Difference"] = getDifference(fightersNameToInfoDict[fighterNameA][key],fightersNameToInfoDict[fighterNameB][key])
-    return(differencesDict)
 
 
 
