@@ -77,10 +77,28 @@ def getAccuracyOfModel(statsToJudgeBy):
             correctGuesses+=1
     return((correctGuesses/len(datalists["TestList"]))*100)
 
-def writeResultsToFile(size, statsAndAccuracy):
-    file = open('level' + str(size) + '.txt', 'w+')
+def readTopStatsFromFile():
+    i=0
+    with open("top_stats.txt", "r") as topStatsFile:
+        topStats = []
+        for line in topStatsFile:
+            if i<100:
+                i+=1
+                if line !='\n' or line!='':
+                    statArray=line.strip().split(',')[1:]
+                    if '' in statArray:
+                        statArray.remove('')
+                    topStats.append(statArray)
+            else:
+                break
+    topStatsFile.close()
+    return topStats
+
+
+def writeResultsToFile(statsAndAccuracy):
+    file = open('top_stats.txt', 'w+')
     for item in sorted(statsAndAccuracy, key=lambda tup: tup[1], reverse=True):
-        file.write(str(item[0]) + " : " + str(item[1]) + '\n')
+            file.write(str(item[1]) + "," + str(item[0]).replace("'", "").replace("(", "").replace(")", "").replace(" ", "") + '\n')
     file.close()
 
 #Attempts to run the model for a number of stats to see which ones have the most predictive power
@@ -108,24 +126,56 @@ def testAllStats():
             #Writes the results to a file if there are over 100 unwritten results just so theres a result to look at if the level doesn't finish
             if(batchSize>100):
                 batchSize=0
-                writeResultsToFile(size,statsAndAccuracy)
+                writeResultsToFile(statsAndAccuracy)
 
         print("One level done")
-        writeResultsToFile(size, statsAndAccuracy)
+        writeResultsToFile(statsAndAccuracy)
 
     print("Done")
     return(sorted(statsAndAccuracy, key=lambda tup: tup[1], reverse=True))
 
+#Test accuracy of using top 100 stats
+def testTopStats():
+    datalists = splitDataset(0.66)
+
+    correctGuesses = 0
+    for fight in datalists["TestList"]:
+        win = 0
+        loss = 0
+        for statArray in readTopStatsFromFile():
+            if makePrediction(fight,statArray,ScraperDAO.fighterDifferencesAndResultsList)=="Win":
+                win+=1
+            else:
+                loss+=1
+        if win>loss:
+            predictedFightResult = "Win"
+        else:
+            predictedFightResult = "Lose"
+        if fight["Result"] == predictedFightResult:
+            correctGuesses += 1
+        print(correctGuesses)
+
+    return ((correctGuesses / len(datalists["TestList"])) * 100)
+
 #Predicts the outcome of a fight given two fighters
 def predictOutcome(fighterNameA,fighterNameB):
     ScraperDAO.getDifferencesBetweenFighters(fighterNameA,fighterNameB)
-    if makePrediction(ScraperDAO.getDifferencesBetweenFighters(fighterNameA,fighterNameB),ScraperDAO.getNamesOfStats(),ScraperDAO.fighterDifferencesAndResultsList)=="Win":
-        return(fighterNameA + " wins")
+    win=0
+    loss=0
+    for statArray in readTopStatsFromFile():
+        if makePrediction(ScraperDAO.getDifferencesBetweenFighters(fighterNameA,fighterNameB),statArray,ScraperDAO.fighterDifferencesAndResultsList)=="Win":
+            win+=1
+        else:
+            loss+=1
+
+    if win>loss:
+        return (fighterNameA + " wins with " + str(win*100/(win+loss)) + "% accuracy")
     else:
-        return(fighterNameB + " wins")
+        return (fighterNameB + " wins with " + str(loss*100/(win+loss)) + "% accuracy")
 
 if __name__ ==  '__main__':
-    print(testAllStats())
+    print(testTopStats())
+
 
 
 
