@@ -1,3 +1,4 @@
+import sys
 import ScraperDAO
 import random
 import math
@@ -82,7 +83,7 @@ def readTopStatsFromFile():
     with open("top_stats.txt", "r") as topStatsFile:
         topStats = []
         for line in topStatsFile:
-            if i<100:
+            if i<1000:
                 i+=1
                 if line !='\n' or line!='':
                     statArray=line.strip().split(',')[1:]
@@ -102,7 +103,7 @@ def writeResultsToFile(statsAndAccuracy):
     file.close()
 
 #Attempts to run the model for a number of stats to see which ones have the most predictive power
-def testAllStats():
+def testAllStats(parrallelize):
     statsAndAccuracy =[]
 
     pool = Pool()
@@ -115,11 +116,17 @@ def testAllStats():
             totalaccuracy=0
 
             # Runs the model 3 times in parallel to average out the accuracy
-            result1 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
-            result2 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
-            result3 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
+            #Parallelized version will speed things up but will require more resources
+            if parrallelize:
+                result1 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
+                result2 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
+                result3 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
+                totalaccuracy=result1.get()+result2.get()+result3.get()
+            #Non parallelized version is slower but requires less resources
+            else:
+                for i in range(3):
+                    totalaccuracy += getAccuracyOfModel(statNamesSubset)
 
-            totalaccuracy=result1.get()+result2.get()+result3.get()
             statsAndAccuracy.append((statNamesSubset,totalaccuracy/3))
             print(str(statNamesSubset) + " : " + str(totalaccuracy/3))
 
@@ -150,7 +157,7 @@ def testTopStats():
         if win>loss:
             predictedFightResult = "Win"
         else:
-            predictedFightResult = "Lose"
+            predictedFightResult = "Loss"
         if fight["Result"] == predictedFightResult:
             correctGuesses += 1
         print(correctGuesses)
@@ -174,7 +181,10 @@ def predictOutcome(fighterNameA,fighterNameB):
         return (fighterNameB + " wins with " + str(loss*100/(win+loss)) + "% accuracy")
 
 if __name__ ==  '__main__':
-    print(testTopStats())
+    if('-p' in sys.argv):
+        print(testAllStats(True))
+    else:
+        print(testAllStats(False))
 
 
 
