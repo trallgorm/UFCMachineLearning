@@ -117,6 +117,7 @@ def testAllStats(parrallelize):
 
             # Runs the model 3 times in parallel to average out the accuracy
             #Parallelized version will speed things up but will require more resources
+            #If you want to run it parallelized include -p as a command line argument
             if parrallelize:
                 result1 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
                 result2 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
