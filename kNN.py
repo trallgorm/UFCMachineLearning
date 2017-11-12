@@ -109,38 +109,33 @@ def testAllStats(parrallelize):
     pool = Pool()
 
     #Runs for a combination of all the stats, will finish in only around 173 trillion years
-    for size in range(1, len(ScraperDAO.getNamesOfStats()) + 1):
-        batchSize = 0
-        for statNamesSubset in itertools.combinations(ScraperDAO.getNamesOfStats(), size):
-            batchSize+=1
-            totalaccuracy=0
 
-            # Runs the model 3 times in parallel to average out the accuracy
-            #Parallelized version will speed things up but will require more resources
-            #If you want to run it parallelized include -p as a command line argument
-            if parrallelize:
-                result1 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
-                result2 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
-                result3 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
-                totalaccuracy=result1.get()+result2.get()+result3.get()
-            #Non parallelized version is slower but requires less resources
-            else:
-                for i in range(3):
-                    totalaccuracy += getAccuracyOfModel(statNamesSubset)
+    batchSize = 0
+    while(True):
+        statNamesSubset = pickcomb(ScraperDAO.getNamesOfStats())
+        batchSize+=1
+        totalaccuracy=0
 
-            statsAndAccuracy.append((statNamesSubset,totalaccuracy/3))
-            print(str(statNamesSubset) + " : " + str(totalaccuracy/3))
+        # Runs the model 3 times in parallel to average out the accuracy
+        #Parallelized version will speed things up but will require more resources
+        #If you want to run it parallelized include -p as a command line argument
+        if parrallelize:
+            result1 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
+            result2 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
+            result3 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
+            totalaccuracy=result1.get()+result2.get()+result3.get()
+        #Non parallelized version is slower but requires less resources
+        else:
+            for i in range(3):
+                totalaccuracy += getAccuracyOfModel(statNamesSubset)
 
-            #Writes the results to a file if there are over 100 unwritten results just so theres a result to look at if the level doesn't finish
-            if(batchSize>100):
-                batchSize=0
-                writeResultsToFile(statsAndAccuracy)
+        statsAndAccuracy.append((statNamesSubset,totalaccuracy/3))
+        print(str(statNamesSubset) + " : " + str(totalaccuracy/3))
 
-        print("One level done")
-        writeResultsToFile(statsAndAccuracy)
-
-    print("Done")
-    return(sorted(statsAndAccuracy, key=lambda tup: tup[1], reverse=True))
+        #Writes the results to a file if there are over 100 unwritten results just so theres a result to look at if the level doesn't finish
+        if(batchSize>100):
+            batchSize=0
+            writeResultsToFile(statsAndAccuracy)
 
 #Test accuracy of using top 100 stats
 def testTopStats():
@@ -164,6 +159,12 @@ def testTopStats():
         print(correctGuesses)
 
     return ((correctGuesses / len(datalists["TestList"])) * 100)
+
+def pickcomb(i):
+    n = len(i)
+    allcomb = itertools.chain(*(itertools.combinations(i, j) for j in range(1, n + 1)))
+    k = random.randint(0, 2 ** n - 2)
+    return list(itertools.islice(allcomb, k, k + 1))[0]
 
 #Predicts the outcome of a fight given two fighters
 def predictOutcome(fighterNameA,fighterNameB):
