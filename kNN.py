@@ -160,9 +160,12 @@ def testTopStats():
 
     return ((correctGuesses / len(datalists["TestList"])) * 100)
 
+#Gets a random set of stats given the array of all stats
 def getRandomCombination(arrayToPickFrom):
     randomIndex = randrange(1 << len(arrayToPickFrom))
     result = []
+
+    #Each stat has a 50% chance of making it in
     for stat in arrayToPickFrom:
         if randomIndex & 1:
             result.append(stat)
