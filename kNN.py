@@ -4,6 +4,7 @@ import random
 import math
 import itertools
 from multiprocessing import Pool
+from random import randrange
 from datetime import datetime
 
 #Set k to the square root of the amount of samples, a good metric
@@ -109,10 +110,9 @@ def testAllStats(parrallelize):
     pool = Pool()
 
     #Runs for a combination of all the stats, will finish in only around 173 trillion years
-
     batchSize = 0
     while(True):
-        statNamesSubset = pickcomb(ScraperDAO.getNamesOfStats())
+        statNamesSubset = getRandomCombination(ScraperDAO.getNamesOfStats())
         batchSize+=1
         totalaccuracy=0
 
@@ -160,11 +160,16 @@ def testTopStats():
 
     return ((correctGuesses / len(datalists["TestList"])) * 100)
 
-def pickcomb(i):
-    n = len(i)
-    allcomb = itertools.chain(*(itertools.combinations(i, j) for j in range(1, n + 1)))
-    k = random.randint(0, 2 ** n - 2)
-    return list(itertools.islice(allcomb, k, k + 1))[0]
+def getRandomCombination(seq):
+    n = randrange(1 << len(seq))
+    result = []
+    for stat in seq:
+        if n & 1:
+            result.append(stat)
+        n >>= 1
+        if not n:
+            break
+    return result
 
 #Predicts the outcome of a fight given two fighters
 def predictOutcome(fighterNameA,fighterNameB):
