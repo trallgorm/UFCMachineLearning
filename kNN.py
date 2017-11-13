@@ -160,10 +160,10 @@ def testTopStats():
 
     return ((correctGuesses / len(datalists["TestList"])) * 100)
 
-def getRandomCombination(seq):
-    randomIndex = randrange(1 << len(seq))
+def getRandomCombination(arrayToPickFrom):
+    randomIndex = randrange(1 << len(arrayToPickFrom))
     result = []
-    for stat in seq:
+    for stat in arrayToPickFrom:
         if randomIndex & 1:
             result.append(stat)
         randomIndex >>= 1
