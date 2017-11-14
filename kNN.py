@@ -79,6 +79,8 @@ def getAccuracyOfModel(statsToJudgeBy):
             correctGuesses+=1
     return((correctGuesses/len(datalists["TestList"]))*100)
 
+
+
 def readTopStatsFromFile():
     i=0
     with open("top_stats.txt", "r") as topStatsFile:
@@ -96,6 +98,23 @@ def readTopStatsFromFile():
     topStatsFile.close()
     return topStats
 
+def readPreviousSession():
+    allStats = []
+    try:
+        with open("top_stats.txt", "r") as topStatsFile:
+            for line in topStatsFile:
+                if line !='\n' or line!='':
+                    lineArray=line.strip().split(',')
+                    statArray=lineArray[1:]
+                    if '' in statArray:
+                        statArray.remove('')
+                    accuracy = lineArray[0]
+                    allStats.append((statArray,float(accuracy)))
+    except FileNotFoundError:
+        topStatsFile= open("top_stats.txt", "w+")
+    topStatsFile.close()
+    return allStats
+
 
 def writeResultsToFile(statsAndAccuracy):
     file = open('top_stats.txt', 'w+')
@@ -105,7 +124,7 @@ def writeResultsToFile(statsAndAccuracy):
 
 #Attempts to run the model for a number of stats to see which ones have the most predictive power
 def testAllStats(parrallelize):
-    statsAndAccuracy =[]
+    statsAndAccuracy =readPreviousSession()
 
     pool = Pool()
 
@@ -133,7 +152,7 @@ def testAllStats(parrallelize):
         print(str(statNamesSubset) + " : " + str(totalaccuracy/3))
 
         #Writes the results to a file if there are over 100 unwritten results just so theres a result to look at if the level doesn't finish
-        if(batchSize>100):
+        if(batchSize>3):
             batchSize=0
             writeResultsToFile(statsAndAccuracy)
 
