@@ -119,7 +119,7 @@ def readPreviousSession():
 def writeResultsToFile(statsAndAccuracy):
     file = open('top_stats.txt', 'w+')
     for item in sorted(statsAndAccuracy, key=lambda tup: tup[1], reverse=True):
-            file.write(str(item[1]) + "," + str(item[0]).replace("'", "").replace("(", "").replace(")", "").replace(" ", "") + '\n')
+            file.write(str(item[1]) + "," + str(item[0]).replace("'", "").replace("(", "").replace(")", "").replace(" ", "").replace("[", "").replace("]", "") + '\n')
     file.close()
 
 #Attempts to run the model for a number of stats to see which ones have the most predictive power
@@ -152,7 +152,7 @@ def testAllStats(parrallelize):
         print(str(statNamesSubset) + " : " + str(totalaccuracy/3))
 
         #Writes the results to a file if there are over 100 unwritten results just so theres a result to look at if the level doesn't finish
-        if(batchSize>3):
+        if(batchSize>1):
             batchSize=0
             writeResultsToFile(statsAndAccuracy)
 
