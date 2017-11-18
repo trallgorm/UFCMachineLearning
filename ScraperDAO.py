@@ -238,7 +238,9 @@ def getNamesOfStats():
 def getDifferencesBetweenFighters(fighterNameA,fighterNameB):
     differencesDict = {}
     for key in fightersNameToInfoDict[fighterNameA]:
-        differencesDict[key + "Difference"] = getDifference(fightersNameToInfoDict[fighterNameA][key],fightersNameToInfoDict[fighterNameB][key])
+        if key not in ["Fights"]:
+            differencesDict[key + "Difference"] = getDifference(fightersNameToInfoDict[fighterNameA][key],fightersNameToInfoDict[fighterNameB][key])
+
     return(differencesDict)
 
 #Collect the stat differences and the result of the fight and  put each fight in a list

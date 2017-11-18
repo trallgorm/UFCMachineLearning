@@ -1,5 +1,6 @@
 import sys
 import ScraperDAO
+import kNNshared
 import random
 import math
 import itertools
@@ -23,80 +24,15 @@ def splitDataset(splitPercentage):
 
     return({"TestList" : testInstancesList, "TrainingList": trainingInstancesList})
 
-#Gets the euclidean distance between two matches
-#Euclidian distance is the root of the sum of the squared differences between the dimensions
-def getEuclideanDistance(a, b , stats):
-    distance = 0
-    for stat in stats:
-        if stat!="Result":
-            distance += pow((a[stat] - b[stat]), 2)
-    return math.sqrt(distance)
-
-#Guesses whether the fighter will win or lose in a fight
-#The input is a set of differences between the fighters stats, eg -10 if the opponent is 10 cm taller
-def makePrediction(newFight, statsToJudgeBy, trainingInstancesList):
-
-
-    winDistancesList=[]
-    loseDistancesList=[]
-
-    #Gets the distances between all the matches and places them in the win list or the lose list
-    for testInstance in trainingInstancesList:
-        distance = getEuclideanDistance(testInstance, newFight, statsToJudgeBy)
-
-        #If you ain't first you're last
-        if testInstance["Result"]=="Win":
-            winDistancesList.append(distance)
-        else:
-            loseDistancesList.append(distance)
-
-    winDistancesList.sort()
-    loseDistancesList.sort()
-
-    winIndex=0
-    loseIndex=0
-
-    #Indeces can be thought of as votes. Eg the index for the winlist only moves if the highest current winning distance is lower than the current losing distance
-    for x in range(k):
-        if winDistancesList[winIndex]<loseDistancesList[loseIndex]:
-            winIndex+=1
-        else:
-            loseIndex+=1
-
-
-    if(winIndex>loseIndex):
-        return("Win")
-    else:
-        return("Loss")
-
 #Runs the model and returns its accuracy
 def getAccuracyOfModel(statsToJudgeBy):
 
     datalists = splitDataset(0.66)
     correctGuesses = 0
     for fight in datalists["TestList"]:
-        if fight["Result"] == makePrediction(fight, statsToJudgeBy, datalists["TrainingList"]):
+        if fight["Result"] == kNNshared.makePrediction(fight, statsToJudgeBy, datalists["TrainingList"], k):
             correctGuesses+=1
     return((correctGuesses/len(datalists["TestList"]))*100)
-
-
-
-def readTopStatsFromFile():
-    i=0
-    with open("top_stats.txt", "r") as topStatsFile:
-        topStats = []
-        for line in topStatsFile:
-            if i<1000:
-                i+=1
-                if line !='\n' or line!='':
-                    statArray=line.strip().split(',')[1:]
-                    if '' in statArray:
-                        statArray.remove('')
-                    topStats.append(statArray)
-            else:
-                break
-    topStatsFile.close()
-    return topStats
 
 def readPreviousSession():
     allStats = []
@@ -164,8 +100,8 @@ def testTopStats():
     for fight in datalists["TestList"]:
         win = 0
         loss = 0
-        for statArray in readTopStatsFromFile():
-            if makePrediction(fight,statArray,ScraperDAO.fighterDifferencesAndResultsList)=="Win":
+        for statArray in kNNshared.readTopStatsFromFile():
+            if kNNshared.makePrediction(fight,statArray,ScraperDAO.fighterDifferencesAndResultsList,k)=="Win":
                 win+=1
             else:
                 loss+=1
@@ -192,22 +128,6 @@ def getRandomCombination(arrayToPickFrom):
         if randomIndex==0:
             break
     return result
-
-#Predicts the outcome of a fight given two fighters
-def predictOutcome(fighterNameA,fighterNameB):
-    ScraperDAO.getDifferencesBetweenFighters(fighterNameA,fighterNameB)
-    win=0
-    loss=0
-    for statArray in readTopStatsFromFile():
-        if makePrediction(ScraperDAO.getDifferencesBetweenFighters(fighterNameA,fighterNameB),statArray,ScraperDAO.fighterDifferencesAndResultsList)=="Win":
-            win+=1
-        else:
-            loss+=1
-
-    if win>loss:
-        return (fighterNameA + " wins with " + str(win*100/(win+loss)) + "% accuracy")
-    else:
-        return (fighterNameB + " wins with " + str(loss*100/(win+loss)) + "% accuracy")
 
 if __name__ ==  '__main__':
     if('-p' in sys.argv):
