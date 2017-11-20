@@ -88,8 +88,9 @@ def trainSequentially(parallelize):
     #Runs for a combination of all the stats, will finish in only around 173 trillion years
     for size in range(1, len(ScraperDAO.getNamesOfStats()) + 1):
         for statNamesSubset in itertools.combinations(ScraperDAO.getNamesOfStats(), size):
-            statsAndAccuracy.append((statNamesSubset, getAverageAccuracyOfModel(parallelize,statNamesSubset)))
+            currentBatchSize+=1
 
+            statsAndAccuracy.append((statNamesSubset, getAverageAccuracyOfModel(parallelize,statNamesSubset)))
             # Writes the results to a file if the amount of unwritten results has exceeded the threshold
             if (currentBatchSize > BATCH_SIZE_THRESHOLD):
                 currentBatchSize = 0
@@ -111,6 +112,23 @@ def trainRandomly(parallelize):
         if(batchSize>BATCH_SIZE_THRESHOLD):
             batchSize=0
             writeResultsToFile(statsAndAccuracy)
+
+def trainRandomlyAndSequentially(parallelize):
+    statsAndAccuracy =readPreviousSession()
+    currentBatchSize = 0
+
+    for size in range(1, len(ScraperDAO.getNamesOfStats()) + 1):
+        for statNamesSubset in itertools.combinations(ScraperDAO.getNamesOfStats(), size):
+            currentBatchSize += 2
+
+            statsAndAccuracy.append((statNamesSubset, getAverageAccuracyOfModel(parallelize, statNamesSubset)))
+            statNamesSubset = getRandomCombination(ScraperDAO.getNamesOfStats())
+            statsAndAccuracy.append((statNamesSubset, getAverageAccuracyOfModel(parallelize, statNamesSubset)))
+            # Writes the results to a file if the amount of unwritten results has exceeded the threshold
+            if (currentBatchSize > BATCH_SIZE_THRESHOLD):
+                currentBatchSize = 0
+                writeResultsToFile(statsAndAccuracy)
+
 
 #Test accuracy of using top 100 stats
 def testTopStats():
@@ -157,14 +175,13 @@ if __name__ ==  '__main__':
         parallelize = True
 
     #Use the -s command line optiond if you want to step through the models sequentially rather than randomly
-    sequential=False
     if('-s' in sys.argv):
-        sequential = True
-
-    if sequential:
         trainSequentially(parallelize)
     else:
-        trainRandomly(parallelize)
+        if ('-sr' in sys.argv):
+            trainRandomlyAndSequentially(parallelize)
+        else:
+            trainRandomly(parallelize)
 
 
 
