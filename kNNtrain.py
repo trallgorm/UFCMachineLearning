@@ -10,6 +10,9 @@ from datetime import datetime
 
 #Set k to the square root of the amount of samples, a good metric
 k = int(math.sqrt(len(ScraperDAO.fighterDifferencesAndResultsList)))
+BATCH_SIZE_THRESHOLD = 5
+
+
 
 #Fills the training list and the test list with the amount in the training list specified by split percentage
 def splitDataset(splitPercentage):
@@ -58,37 +61,54 @@ def writeResultsToFile(statsAndAccuracy):
             file.write(str(item[1]) + "," + str(item[0]).replace("'", "").replace("(", "").replace(")", "").replace(" ", "").replace("[", "").replace("]", "") + '\n')
     file.close()
 
-#Attempts to run the model for a number of stats to see which ones have the most predictive power
-def testAllStats(parrallelize):
-    statsAndAccuracy =readPreviousSession()
-
-    pool = Pool()
-
-    #Runs for a combination of all the stats, will finish in only around 173 trillion years
-    batchSize = 0
-    while(True):
-        statNamesSubset = getRandomCombination(ScraperDAO.getNamesOfStats())
-        batchSize+=1
-        totalaccuracy=0
-
+#Gets the average accuracy of the model
+def getAverageAccuracyOfModel(parallelize,statNamesSubset):
+        pool = Pool()
+        totalaccuracy = 0
         # Runs the model 3 times in parallel to average out the accuracy
-        #Parallelized version will speed things up but will require more resources
-        #If you want to run it parallelized include -p as a command line argument
-        if parrallelize:
+        # Parallelized version will speed things up but will require more resources
+        # If you want to run it parallelized include -p as a command line argument
+        if parallelize:
             result1 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
             result2 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
             result3 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
-            totalaccuracy=result1.get()+result2.get()+result3.get()
-        #Non parallelized version is slower but requires less resources
+            totalaccuracy = result1.get() + result2.get() + result3.get()
+        # Non parallelized version is slower but requires less resources
         else:
             for i in range(3):
                 totalaccuracy += getAccuracyOfModel(statNamesSubset)
+        print(str(statNamesSubset) + " : " + str(totalaccuracy / 3))
+        return(totalaccuracy / 3)
 
-        statsAndAccuracy.append((statNamesSubset,totalaccuracy/3))
-        print(str(statNamesSubset) + " : " + str(totalaccuracy/3))
+#Attempts to run the model for a number of stats to see which ones have the most predictive power
+#Tries stats names sequentially, starting with the least amount of stats and going to all stats
+def trainSequentially(parallelize):
+    currentBatchSize = 0
+    statsAndAccuracy = readPreviousSession()
+    #Runs for a combination of all the stats, will finish in only around 173 trillion years
+    for size in range(1, len(ScraperDAO.getNamesOfStats()) + 1):
+        for statNamesSubset in itertools.combinations(ScraperDAO.getNamesOfStats(), size):
+            statsAndAccuracy.append((statNamesSubset, getAverageAccuracyOfModel(parallelize,statNamesSubset)))
 
-        #Writes the results to a file if there are over 100 unwritten results just so theres a result to look at if the level doesn't finish
-        if(batchSize>1):
+            # Writes the results to a file if the amount of unwritten results has exceeded the threshold
+            if (currentBatchSize > BATCH_SIZE_THRESHOLD):
+                currentBatchSize = 0
+                writeResultsToFile(statsAndAccuracy)
+
+#Attempts to run the model for a number of stats to see which ones have the most predictive power
+#Randomly picks stats to check rather than trying them sequentially
+def trainRandomly(parallelize):
+    statsAndAccuracy =readPreviousSession()
+    batchSize = 0
+
+    #Randomly pick a combination of stats and get its accuracy
+    while(True):
+        statNamesSubset = getRandomCombination(ScraperDAO.getNamesOfStats())
+        batchSize+=1
+        statsAndAccuracy.append((statNamesSubset,getAverageAccuracyOfModel(parallelize,statNamesSubset)))
+
+        #Writes the results to a file if the amount of unwritten results has exceeded the threshold
+        if(batchSize>BATCH_SIZE_THRESHOLD):
             batchSize=0
             writeResultsToFile(statsAndAccuracy)
 
@@ -130,10 +150,24 @@ def getRandomCombination(arrayToPickFrom):
     return result
 
 if __name__ ==  '__main__':
+
+    #Use the -p command line option if you want to parallelize the program
+    parallelize = False
     if('-p' in sys.argv):
-        print(testAllStats(True))
+        parallelize = True
+
+    #Use the -s command line optiond if you want to step through the models sequentially rather than randomly
+    sequential=False
+    if('-s' in sys.argv):
+        sequential = True
+
+    if sequential:
+        trainSequentially(parallelize)
     else:
-        print(testAllStats(False))
+        trainRandomly(parallelize)
+
+
+
 
 
 
