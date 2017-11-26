@@ -1,7 +1,7 @@
 import math
 
-NUM_STATS_RETURNED = 1000
 
+#Reads the result file and returns a sorted array of tuple which contain the stat name array and the accuracy percentage
 def readPreviousSession():
     allStats = []
     try:
@@ -19,11 +19,12 @@ def readPreviousSession():
         allStats=[]
     return sorted(allStats, key=lambda tup: tup[1], reverse=True)
 
-def readTopStatsFromFile():
+#Reads the top x stats
+def readTopStatsFromFile(amountOfTopStats):
     topStats = readPreviousSession()
-    if(len(topStats)<NUM_STATS_RETURNED):
+    if(len(topStats)<amountOfTopStats):
         return topStats[:len(topStats)]
-    return topStats[:NUM_STATS_RETURNED]
+    return topStats[:amountOfTopStats]
 
 #Gets the euclidean distance between two matches
 #Euclidian distance is the root of the sum of the squared differences between the dimensions
