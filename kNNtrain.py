@@ -37,24 +37,6 @@ def getAccuracyOfModel(statsToJudgeBy):
             correctGuesses+=1
     return((correctGuesses/len(datalists["TestList"]))*100)
 
-def readPreviousSession():
-    allStats = []
-    try:
-        with open("top_stats.txt", "r") as topStatsFile:
-            for line in topStatsFile:
-                if line !='\n' or line!='':
-                    lineArray=line.strip().split(',')
-                    statArray=lineArray[1:]
-                    if '' in statArray:
-                        statArray.remove('')
-                    accuracy = lineArray[0]
-                    allStats.append((statArray,float(accuracy)))
-    except FileNotFoundError:
-        topStatsFile= open("top_stats.txt", "w+")
-    topStatsFile.close()
-    return allStats
-
-
 def writeResultsToFile(statsAndAccuracy):
     file = open('top_stats.txt', 'a+')
     for currentItem in statsAndAccuracy:
@@ -115,6 +97,8 @@ def trainRandomly(parallelize):
             writeResultsToFile(statsAndAccuracy)
             statsAndAccuracy = []
 
+#Attempts to run the model for a number of stats to see which ones have the most predictive power
+#Goes through the stats sequentially but also picks one stat at random for every sequential one
 def trainRandomlyAndSequentially(parallelize):
     statsAndAccuracy = []
     currentBatchSize = 0
