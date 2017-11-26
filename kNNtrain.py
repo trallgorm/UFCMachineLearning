@@ -10,7 +10,7 @@ from datetime import datetime
 
 #Set k to the square root of the amount of samples, a good metric
 k = int(math.sqrt(len(ScraperDAO.fighterDifferencesAndResultsList)))
-BATCH_SIZE_THRESHOLD = 5
+BATCH_SIZE_THRESHOLD = 3
 
 
 
@@ -56,9 +56,23 @@ def readPreviousSession():
 
 
 def writeResultsToFile(statsAndAccuracy):
+    file = open('top_stats.txt', 'r+')
+    lines = file.readlines()
+    file.close()
+
     file = open('top_stats.txt', 'w+')
-    for item in sorted(statsAndAccuracy, key=lambda tup: tup[1], reverse=True):
-            file.write(str(item[1]) + "," + str(item[0]).replace("'", "").replace("(", "").replace(")", "").replace(" ", "").replace("[", "").replace("]", "") + '\n')
+    currentLineIndex=0
+    currentItemIndex =0
+
+    sortedStatsAndAccuracy = sorted(statsAndAccuracy, key=lambda tup: tup[1], reverse=True)
+
+    while(currentItemIndex<len(statsAndAccuracy)):
+        if currentLineIndex==len(lines) or (sortedStatsAndAccuracy[currentItemIndex][1] < float(lines[currentLineIndex].split(",")[0])):
+            lines.insert(currentLineIndex, str(sortedStatsAndAccuracy[currentItemIndex][1]) + "," + str(sortedStatsAndAccuracy[currentItemIndex][0]).replace("'", "").replace("(", "").replace(")", "").replace(" ", "").replace("[", "").replace("]", "") + '\n')
+            currentItemIndex+=1
+        currentLineIndex+=1
+
+    file.writelines(lines)
     file.close()
 
 #Gets the average accuracy of the model
@@ -77,14 +91,14 @@ def getAverageAccuracyOfModel(parallelize,statNamesSubset):
         else:
             for i in range(3):
                 totalaccuracy += getAccuracyOfModel(statNamesSubset)
-        print(str(statNamesSubset) + " : " + str(totalaccuracy / 3))
+        print(str(totalaccuracy / 3) + " : " + str(statNamesSubset))
         return(totalaccuracy / 3)
 
 #Attempts to run the model for a number of stats to see which ones have the most predictive power
 #Tries stats names sequentially, starting with the least amount of stats and going to all stats
 def trainSequentially(parallelize):
     currentBatchSize = 0
-    statsAndAccuracy = readPreviousSession()
+    statsAndAccuracy = []
     #Runs for a combination of all the stats, will finish in only around 173 trillion years
     for size in range(1, len(ScraperDAO.getNamesOfStats()) + 1):
         for statNamesSubset in itertools.combinations(ScraperDAO.getNamesOfStats(), size):
@@ -95,11 +109,12 @@ def trainSequentially(parallelize):
             if (currentBatchSize > BATCH_SIZE_THRESHOLD):
                 currentBatchSize = 0
                 writeResultsToFile(statsAndAccuracy)
+                statsAndAccuracy = []
 
 #Attempts to run the model for a number of stats to see which ones have the most predictive power
 #Randomly picks stats to check rather than trying them sequentially
 def trainRandomly(parallelize):
-    statsAndAccuracy =readPreviousSession()
+    statsAndAccuracy =[]
     batchSize = 0
 
     #Randomly pick a combination of stats and get its accuracy
@@ -112,9 +127,10 @@ def trainRandomly(parallelize):
         if(batchSize>BATCH_SIZE_THRESHOLD):
             batchSize=0
             writeResultsToFile(statsAndAccuracy)
+            statsAndAccuracy = []
 
 def trainRandomlyAndSequentially(parallelize):
-    statsAndAccuracy =readPreviousSession()
+    statsAndAccuracy = []
     currentBatchSize = 0
 
     for size in range(1, len(ScraperDAO.getNamesOfStats()) + 1):
@@ -128,7 +144,7 @@ def trainRandomlyAndSequentially(parallelize):
             if (currentBatchSize > BATCH_SIZE_THRESHOLD):
                 currentBatchSize = 0
                 writeResultsToFile(statsAndAccuracy)
-
+                statsAndAccuracy = []
 
 #Test accuracy of using top 100 stats
 def testTopStats():
