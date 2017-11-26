@@ -56,23 +56,9 @@ def readPreviousSession():
 
 
 def writeResultsToFile(statsAndAccuracy):
-    file = open('top_stats.txt', 'r+')
-    lines = file.readlines()
-    file.close()
-
-    file = open('top_stats.txt', 'w+')
-    currentLineIndex=0
-    currentItemIndex =0
-
-    sortedStatsAndAccuracy = sorted(statsAndAccuracy, key=lambda tup: tup[1], reverse=True)
-
-    while(currentItemIndex<len(statsAndAccuracy)):
-        if currentLineIndex==len(lines) or (sortedStatsAndAccuracy[currentItemIndex][1] < float(lines[currentLineIndex].split(",")[0])):
-            lines.insert(currentLineIndex, str(sortedStatsAndAccuracy[currentItemIndex][1]) + "," + str(sortedStatsAndAccuracy[currentItemIndex][0]).replace("'", "").replace("(", "").replace(")", "").replace(" ", "").replace("[", "").replace("]", "") + '\n')
-            currentItemIndex+=1
-        currentLineIndex+=1
-
-    file.writelines(lines)
+    file = open('top_stats.txt', 'a+')
+    for currentItem in statsAndAccuracy:
+            file.write(str(currentItem[1]) + "," + str(currentItem[0]).replace("'", "").replace("(", "").replace(")", "").replace(" ", "").replace("[", "").replace("]", "") + '\n')
     file.close()
 
 #Gets the average accuracy of the model

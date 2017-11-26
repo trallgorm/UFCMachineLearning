@@ -1,21 +1,29 @@
 import math
 
-def readTopStatsFromFile():
-    i=0
-    with open("top_stats.txt", "r") as topStatsFile:
-        topStats = []
-        for line in topStatsFile:
-            if i<1000:
-                i+=1
+NUM_STATS_RETURNED = 1000
+
+def readPreviousSession():
+    allStats = []
+    try:
+        with open("top_stats.txt", "r") as topStatsFile:
+            for line in topStatsFile:
                 if line !='\n' or line!='':
-                    statArray=line.strip().split(',')[1:]
+                    lineArray=line.strip().split(',')
+                    statArray=lineArray[1:]
                     if '' in statArray:
                         statArray.remove('')
-                    topStats.append(statArray)
-            else:
-                break
-    topStatsFile.close()
-    return topStats
+                    accuracy = lineArray[0]
+                    allStats.append((statArray,float(accuracy)))
+        topStatsFile.close()
+    except FileNotFoundError:
+        allStats=[]
+    return sorted(allStats, key=lambda tup: tup[1], reverse=True)
+
+def readTopStatsFromFile():
+    topStats = readPreviousSession()
+    if(len(topStats)<NUM_STATS_RETURNED):
+        return topStats[:len(topStats)]
+    return topStats[:NUM_STATS_RETURNED]
 
 #Gets the euclidean distance between two matches
 #Euclidian distance is the root of the sum of the squared differences between the dimensions

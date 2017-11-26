@@ -11,11 +11,10 @@ def predictOutcome(fighterNameA,fighterNameB):
     win=0
     loss=0
     for statArray in kNNshared.readTopStatsFromFile():
-        if kNNshared.makePrediction(ScraperDAO.getDifferencesBetweenFighters(fighterNameA,fighterNameB),statArray,ScraperDAO.fighterDifferencesAndResultsList, k)=="Win":
+        if kNNshared.makePrediction(ScraperDAO.getDifferencesBetweenFighters(fighterNameA,fighterNameB),statArray[0],ScraperDAO.fighterDifferencesAndResultsList, k)=="Win":
             win+=1
         else:
             loss+=1
-
     if win>loss:
         return (fighterNameA + " wins with " + str(win*100/(win+loss)) + "% accuracy")
     else:
