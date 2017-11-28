@@ -1,5 +1,17 @@
 import math
+import random
 
+#Fills the training list and the test list with the amount in the training list specified by split percentage
+def splitDataset(splitPercentage, data):
+    trainingInstancesList = []
+    testInstancesList = []
+    for i in range(len(data)-1):
+        if random.random() < splitPercentage:
+            trainingInstancesList.append(data[i])
+        else:
+            testInstancesList.append(data[i])
+
+    return({"TestList" : testInstancesList, "TrainingList": trainingInstancesList})
 
 #Reads the result file and returns a sorted array of tuple which contain the stat name array and the accuracy percentage
 def readPreviousSession():

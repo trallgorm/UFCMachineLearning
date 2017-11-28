@@ -12,25 +12,10 @@ from datetime import datetime
 k = int(math.sqrt(len(ScraperDAO.fighterDifferencesAndResultsList)))
 BATCH_SIZE_THRESHOLD = 3
 
-
-
-#Fills the training list and the test list with the amount in the training list specified by split percentage
-def splitDataset(splitPercentage):
-    trainingInstancesList = []
-    testInstancesList = []
-    data = ScraperDAO.fighterDifferencesAndResultsList
-    for i in range(len(data)-1):
-        if random.random() < splitPercentage:
-            trainingInstancesList.append(data[i])
-        else:
-            testInstancesList.append(data[i])
-
-    return({"TestList" : testInstancesList, "TrainingList": trainingInstancesList})
-
 #Runs the model and returns its accuracy
 def getAccuracyOfModel(statsToJudgeBy):
 
-    datalists = splitDataset(0.66)
+    datalists = kNNshared.splitDataset(0.66, ScraperDAO.fighterDifferencesAndResultsList)
     correctGuesses = 0
     for fight in datalists["TestList"]:
         if fight["Result"] == kNNshared.makePrediction(fight, statsToJudgeBy, datalists["TrainingList"], k):
@@ -115,29 +100,6 @@ def trainRandomlyAndSequentially(parallelize):
                 currentBatchSize = 0
                 writeResultsToFile(statsAndAccuracy)
                 statsAndAccuracy = []
-
-#Test accuracy of using top 100 stats
-def testTopStats():
-    datalists = splitDataset(0.66)
-
-    correctGuesses = 0
-    for fight in datalists["TestList"]:
-        win = 0
-        loss = 0
-        for statArray in kNNshared.readTopStatsFromFile():
-            if kNNshared.makePrediction(fight,statArray,ScraperDAO.fighterDifferencesAndResultsList,k)=="Win":
-                win+=1
-            else:
-                loss+=1
-        if win>loss:
-            predictedFightResult = "Win"
-        else:
-            predictedFightResult = "Loss"
-        if fight["Result"] == predictedFightResult:
-            correctGuesses += 1
-        print(correctGuesses)
-
-    return ((correctGuesses / len(datalists["TestList"])) * 100)
 
 #Gets a random set of stats given the array of all stats
 def getRandomCombination(arrayToPickFrom):
