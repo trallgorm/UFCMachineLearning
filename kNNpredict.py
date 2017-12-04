@@ -24,6 +24,10 @@ def predictOutcomeTopStatsWrapper(fighterNameA, fighterNameB, amountOfTopStats):
     else:
         print(fighterNameB + " wins with " + result[1] + "% accuracy")
 
+#Gets all the recorded stats and has them predict who's going to win
+def predictOutcomeAllStatsWrapper(fighterNameA, fighterNameB):
+    return predictOutcomeTopStatsWrapper(fighterNameA, fighterNameB, sys.maxint)
+
 
 #Predicts the outcome of a fight given two fighters based on the top X stats rated by accuracy
 def predictOutcomeTopStats(fighterDifferences,amountOfTopStats):
@@ -39,8 +43,3 @@ def predictOutcomeTopStats(fighterDifferences,amountOfTopStats):
         return("Win",str(win*100/(win+loss)))
     else:
         return("Loss",str(loss*100/(win+loss)))
-
-
-
-#predictOutcomeTopStatsWrapper(sys.argv[1],sys.argv[2],1000)
-print(testTopStats())
