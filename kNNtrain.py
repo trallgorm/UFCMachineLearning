@@ -40,6 +40,7 @@ def getAverageAccuracyOfModel(parallelize,statNamesSubset):
             result2 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
             result3 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
             totalaccuracy = result1.get() + result2.get() + result3.get()
+            pool.close()
         # Non parallelized version is slower but requires less resources
         else:
             for i in range(3):
