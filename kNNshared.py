@@ -81,3 +81,5 @@ def makePrediction(newFight, statsToJudgeBy, trainingInstancesList, k):
         return("Win")
     else:
         return("Loss")
+
+

@@ -30,12 +30,12 @@ def writeResultsToFile(statsAndAccuracy):
 
 #Gets the average accuracy of the model
 def getAverageAccuracyOfModel(parallelize,statNamesSubset):
-        pool = Pool()
         totalaccuracy = 0
         # Runs the model 3 times in parallel to average out the accuracy
         # Parallelized version will speed things up but will require more resources
         # If you want to run it parallelized include -p as a command line argument
         if parallelize:
+            pool = Pool()
             result1 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
             result2 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
             result3 = pool.apply_async(getAccuracyOfModel, [statNamesSubset])
