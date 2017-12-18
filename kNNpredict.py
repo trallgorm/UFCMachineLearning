@@ -18,13 +18,13 @@ def testTopStats():
 
     return ((correctGuesses / len(datalists["TestList"])) * 100)
 
-def testWeightedStats():
+def testWeightedStats(amountOfTopStats):
     datalists = kNNshared.splitDataset(0,ScraperDAO.fighterDifferencesAndResultsList)
     i=0
     correctGuesses = 0
     for fight in datalists["TestList"]:
         i+=1
-        if fight["Result"] == predictOutcomeWeighted(fight)[0]:
+        if fight["Result"] == predictOutcomeWeighted(fight, amountOfTopStats)[0]:
             correctGuesses += 1
         print("Tested: " +str(i) +"/"+str(len(datalists["TestList"])) + ", Correct: " + str(round(100*correctGuesses/i,2)) +"%" )
 
@@ -42,15 +42,15 @@ def predictOutcomeTopStatsWrapper(fighterNameA, fighterNameB, amountOfTopStats):
 def predictOutcomeAllStatsWrapper(fighterNameA, fighterNameB):
     return predictOutcomeTopStatsWrapper(fighterNameA, fighterNameB, sys.maxint)
 
-def predictOutcomeWeightedWrapper(fighterNameA, fighterNameB):
-    result = predictOutcomeWeighted(ScraperDAO.getDifferencesBetweenFighters(fighterNameA, fighterNameB))
+def predictOutcomeWeightedWrapper(fighterNameA, fighterNameB, amountOfTopStats):
+    result = predictOutcomeWeighted(ScraperDAO.getDifferencesBetweenFighters(fighterNameA, fighterNameB),amountOfTopStats)
     if result[0] == "Win":
         print(fighterNameA + " wins with " + result[1] + "% accuracy")
     else:
         print(fighterNameB + " wins with " + result[1] + "% accuracy")
 
 #Weighs the importance of a prediction based on how accurate the stats are
-def predictOutcomeWeighted(fighterDifferences):
+def predictOutcomeWeighted(fighterDifferences, amountOfTopStats):
     winTotal = 0.0
     lossTotal = 0.0
     for statArray in kNNshared.readTopStatsFromFile(1000):
@@ -79,13 +79,19 @@ def predictOutcomeTopStats(fighterDifferences,amountOfTopStats):
         return("Loss",str(loss*100/(win+loss)))
 
 if sys.argv[1] == "-testWeighted":
-    testWeightedStats()
+    if(len(sys.argv)>2):
+        testWeightedStats(int(sys.argv[2]))
+    else:
+        testWeightedStats(sys.maxsize)
 elif sys.argv[1] == "-testTop":
     testTopStats()
 else:
     if "-top" in sys.argv:
         predictOutcomeTopStatsWrapper(sys.argv[1],sys.argv[2],int(sys.argv[4]))
+    elif "-w" in sys.argv:
+        predictOutcomeWeightedWrapper(sys.argv[1],sys.argv[2],int(sys.argv[4]))
     else:
-        predictOutcomeWeightedWrapper(sys.argv[1],sys.argv[2])
+        predictOutcomeWeightedWrapper(sys.argv[1], sys.argv[2], sys.maxsize)
+
 
 
